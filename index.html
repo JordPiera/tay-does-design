@@ -149,6 +149,19 @@
             object-fit: cover;
             display: block;
             transition: all 0.4s ease;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            background-size: 400% 400%;
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .portfolio img.loaded {
+            animation: none;
         }
         
         .portfolio-item:hover img {
@@ -470,41 +483,79 @@
         
         async function loadPortfolioImages() {
             let loadedCount = 0;
+            const loadPromises = [];
             
+            // Load first 6 images immediately, rest progressively
             for (let i = 1; i <= maxPhotos; i++) {
                 const imgPath = `images/photo${i}.jpg`;
                 
-                try {
-                    // Test if image exists
-                    const img = new Image();
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        img.src = imgPath;
-                    });
-                    
-                    // If image loads successfully, add it to portfolio
-                    const portfolioItem = document.createElement('div');
-                    portfolioItem.className = 'portfolio-item';
-                    portfolioItem.innerHTML = `
-                        <img src="${imgPath}" alt="Photo ${i}">
-                    `;
-                    
-                    portfolioGrid.appendChild(portfolioItem);
-                    images.push(img);
-                    loadedCount++;
-                    
-                } catch (error) {
-                    // Image doesn't exist, stop checking
-                    break;
+                if (i <= 6) {
+                    // Load first 6 immediately
+                    loadPromises.push(loadImage(imgPath, i, true));
+                } else {
+                    // Load rest with delay
+                    setTimeout(() => {
+                        loadImage(imgPath, i, false);
+                    }, (i - 6) * 100); // 100ms delay between each
                 }
             }
             
-            console.log(`Loaded ${loadedCount} portfolio images`);
+            // Wait for first 6 to load
+            const firstBatch = await Promise.allSettled(loadPromises);
+            loadedCount = firstBatch.filter(result => result.status === 'fulfilled').length;
             
-            // Update portfolio items array for lightbox
+            console.log(`Loaded ${loadedCount} portfolio images in first batch`);
+            
+            // Update portfolio items array for lightbox after first batch
             portfolioItems = document.querySelectorAll('.portfolio-item');
             setupLightbox();
+        }
+        
+        async function loadImage(imgPath, index, isFirstBatch) {
+            try {
+                // Test if image exists
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        img.classList.add('loaded');
+                        resolve();
+                    };
+                    img.onerror = reject;
+                    img.src = imgPath;
+                });
+                
+                // If image loads successfully, add it to portfolio
+                const portfolioItem = document.createElement('div');
+                portfolioItem.className = 'portfolio-item';
+                portfolioItem.style.opacity = '0';
+                portfolioItem.style.transform = 'translateY(20px)';
+                portfolioItem.innerHTML = `
+                    <img src="${imgPath}" alt="Photo ${index}" loading="lazy" class="loaded">
+                `;
+                
+                portfolioGrid.appendChild(portfolioItem);
+                
+                // Animate in
+                setTimeout(() => {
+                    portfolioItem.style.transition = 'all 0.5s ease';
+                    portfolioItem.style.opacity = '1';
+                    portfolioItem.style.transform = 'translateY(0)';
+                }, 50);
+                
+                images.push(img);
+                
+                // Update lightbox after each new image (for progressive loading)
+                if (!isFirstBatch) {
+                    portfolioItems = document.querySelectorAll('.portfolio-item');
+                    updateLightboxCount();
+                }
+                
+                return img;
+                
+            } catch (error) {
+                // Image doesn't exist, stop checking for this batch
+                if (isFirstBatch) throw error;
+            }
         }
         
         function setupLightbox() {
