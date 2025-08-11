@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tay Does Design - About</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Bubblegum+Sans&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-family: 'Bubblegum Sans', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 400;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            color: #DC143C;
+            letter-spacing: 2px;
+        }
+        
+        header p {
+            font-size: 1.3rem;
+            font-weight: 300;
+            opacity: 1;
+            color: #000000;
+        }
+        
+        nav {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto;
+        }
+        
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            padding: 12px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        nav a:hover::before {
+            left: 100%;
+        }
+        
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        nav a.active {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 1;
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        .about-content p {
+            margin-bottom: 25px;
+            color: #555;
+            text-align: justify;
+        }
+        
+
+        
+        .skills-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .skills-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+        
+        .skills {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .skill-tag {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.95rem;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                padding: 30px 15px;
+            }
+            
+            header h1 {
+                font-size: 2.8rem;
+                letter-spacing: 1px;
+            }
+            
+            header p {
+                font-size: 1.1rem;
+            }
+            
+            nav {
+                padding: 12px 5px;
+            }
+            
+            nav a {
+                margin: 0 8px;
+                font-size: 1rem;
+                padding: 10px 16px;
+                min-width: 70px;
+            }
+            
+            h2 {
+                font-size: 2rem;
+                margin-bottom: 25px;
+            }
+            
+            .container {
+                margin: 15px auto;
+                padding: 25px 15px;
+                width: 98%;
+            }
+            
+            .about-content {
+                font-size: 1rem;
+                line-height: 1.7;
+            }
+            
+            .about-content p {
+                text-align: left;
+                margin-bottom: 20px;
+            }
+            
+
+            
+            .skills-section {
+                margin-top: 30px;
+            }
+            
+            .skills-section h3 {
+                font-size: 1.3rem;
+                margin-bottom: 15px;
+            }
+            
+            .skills {
+                gap: 10px;
+            }
+            
+            .skill-tag {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+            }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 2.2rem;
+            }
+            
+            header p {
+                font-size: 1rem;
+            }
+            
+            nav a {
+                margin: 0 5px;
+                font-size: 0.95rem;
+                padding: 8px 12px;
+            }
+            
+            h2 {
+                font-size: 1.8rem;
+            }
+            
+            .about-content {
+                font-size: 0.95rem;
+            }
+            
+
+            
+            .container {
+                padding: 20px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Tay Does Design</h1>
+        <p>Photography Portfolio</p>
+    </header>
+    <nav>
+        <a href="index.html">Portfolio</a>
+        <a href="about.html" class="active">About</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+    <div class="container">
+        <h2>About Me</h2>
+        <div class="about-content">
+            <p>I'm Tay, a first-year design student with a strong passion for creativity and visual storytelling. My work is often inspired by my love for nature and landscape photography, where I capture the beauty of the world around me and translate those ideas into thoughtful, impactful design.</p>
+            
+            <p>I pride myself on a strong work ethic, approaching every project with dedication, precision, and attention to detail. Whether it's developing a concept, refining a layout, or producing a final piece, I am committed to delivering high-quality results that are both visually engaging and purpose-driven.</p>
+            
+            <p>For me, design is more than aesthetics, it's about crafting experiences, telling stories, and creating work that resonates. I'm eager to continue learning, refining my skills, and bringing fresh ideas to every creative challenge.</p>
+            
+            <div class="skills-section">
+                <h3>Photography Specialties</h3>
+                <div class="skills">
+                    <span class="skill-tag">Landscape Photography</span>
+                    <span class="skill-tag">Street Photography</span>
+                    <span class="skill-tag">Nature Photography</span>
+                    <span class="skill-tag">Event Photography</span>
+                    <span class="skill-tag">Creative Concepts</span>
+                    <span class="skill-tag">Candid Photography</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Tay Does Design | All Rights Reserved</p>
+    </footer>
+</body>
+</html>
