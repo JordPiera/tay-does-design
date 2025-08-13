@@ -461,7 +461,7 @@
             <img id="lightbox-img" src="" alt="">
         </div>
         <div class="lightbox-counter">
-            <span id="current-image">1</span> / <span id="total-images">6</span>
+            <span id="current-image">1</span> / <span id="total-images">0</span>
         </div>
     </div>
     
@@ -471,6 +471,7 @@
         const maxPhotos = 50; // Maximum number to check for
         const images = [];
         let portfolioItems = [];
+        let lightboxSetupComplete = false;
         
         // Photo titles that cycle through for variety
         const photoTitles = [
@@ -483,115 +484,131 @@
         
         async function loadPortfolioImages() {
             let loadedCount = 0;
-            const loadPromises = [];
+            const failedImages = new Set();
             
-            // Load first 6 images immediately, rest progressively
+            console.log('Starting to load portfolio images...');
+            
+            // Load all images sequentially to ensure we don't miss any
             for (let i = 1; i <= maxPhotos; i++) {
                 const imgPath = `images/photo${i}.jpg`;
                 
-                if (i <= 6) {
-                    // Load first 6 immediately
-                    loadPromises.push(loadImage(imgPath, i, true));
-                } else {
-                    // Load rest with delay
-                    setTimeout(() => {
-                        loadImage(imgPath, i, false);
-                    }, (i - 6) * 100); // 100ms delay between each
+                try {
+                    await loadImage(imgPath, i);
+                    loadedCount++;
+                    console.log(`Successfully loaded image ${i}`);
+                    
+                    // Update lightbox after every few images
+                    if (loadedCount % 3 === 0 || loadedCount >= 6) {
+                        updateLightbox();
+                    }
+                    
+                } catch (error) {
+                    failedImages.add(i);
+                    console.log(`Image ${i} not found, continuing...`);
+                    
+                    // If we've failed to load 5 consecutive images, assume we've found all
+                    if (failedImages.size >= 5) {
+                        const lastFiveConsecutive = Array.from({length: 5}, (_, idx) => i - 4 + idx);
+                        const allLastFiveFailed = lastFiveConsecutive.every(num => failedImages.has(num));
+                        
+                        if (allLastFiveFailed) {
+                            console.log(`Stopping search after ${loadedCount} images found`);
+                            break;
+                        }
+                    }
                 }
             }
             
-            // Wait for first 6 to load
-            const firstBatch = await Promise.allSettled(loadPromises);
-            loadedCount = firstBatch.filter(result => result.status === 'fulfilled').length;
+            // Final lightbox setup
+            updateLightbox();
+            console.log(`Portfolio loading complete: ${loadedCount} images loaded`);
             
-            console.log(`Loaded ${loadedCount} portfolio images in first batch`);
-            
-            // Update portfolio items array for lightbox after first batch
-            portfolioItems = document.querySelectorAll('.portfolio-item');
-            setupLightbox();
+            // Update the total images counter
+            document.getElementById('total-images').textContent = loadedCount;
         }
         
-        async function loadImage(imgPath, index, isFirstBatch) {
-            try {
-                // Test if image exists
+        async function loadImage(imgPath, index) {
+            return new Promise((resolve, reject) => {
                 const img = new Image();
-                await new Promise((resolve, reject) => {
-                    img.onload = () => {
-                        img.classList.add('loaded');
-                        resolve();
-                    };
-                    img.onerror = reject;
-                    img.src = imgPath;
+                
+                img.onload = () => {
+                    // Create portfolio item
+                    const portfolioItem = document.createElement('div');
+                    portfolioItem.className = 'portfolio-item';
+                    portfolioItem.style.opacity = '0';
+                    portfolioItem.style.transform = 'translateY(20px)';
+                    portfolioItem.innerHTML = `
+                        <img src="${imgPath}" alt="Photo ${index}" loading="lazy" class="loaded">
+                    `;
+                    
+                    portfolioGrid.appendChild(portfolioItem);
+                    
+                    // Animate in
+                    setTimeout(() => {
+                        portfolioItem.style.transition = 'all 0.5s ease';
+                        portfolioItem.style.opacity = '1';
+                        portfolioItem.style.transform = 'translateY(0)';
+                    }, 50);
+                    
+                    images.push({img, index, element: portfolioItem});
+                    resolve();
+                };
+                
+                img.onerror = () => {
+                    reject(new Error(`Image ${index} failed to load`));
+                };
+                
+                img.src = imgPath;
+            });
+        }
+        
+        function updateLightbox() {
+            portfolioItems = document.querySelectorAll('.portfolio-item');
+            
+            if (!lightboxSetupComplete && portfolioItems.length > 0) {
+                setupLightbox();
+                lightboxSetupComplete = true;
+            } else if (portfolioItems.length > 0) {
+                // Update existing lightbox
+                const totalImagesSpan = document.getElementById('total-images');
+                totalImagesSpan.textContent = portfolioItems.length;
+                
+                // Re-attach click events to new items
+                portfolioItems.forEach((item, index) => {
+                    // Remove existing listeners to avoid duplicates
+                    const newItem = item.cloneNode(true);
+                    item.parentNode.replaceChild(newItem, item);
+                    
+                    newItem.addEventListener('click', function() {
+                        currentImageIndex = index;
+                        showImage(currentImageIndex);
+                        lightbox.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                    });
                 });
                 
-                // If image loads successfully, add it to portfolio
-                const portfolioItem = document.createElement('div');
-                portfolioItem.className = 'portfolio-item';
-                portfolioItem.style.opacity = '0';
-                portfolioItem.style.transform = 'translateY(20px)';
-                portfolioItem.innerHTML = `
-                    <img src="${imgPath}" alt="Photo ${index}" loading="lazy" class="loaded">
-                `;
-                
-                portfolioGrid.appendChild(portfolioItem);
-                
-                // Animate in
-                setTimeout(() => {
-                    portfolioItem.style.transition = 'all 0.5s ease';
-                    portfolioItem.style.opacity = '1';
-                    portfolioItem.style.transform = 'translateY(0)';
-                }, 50);
-                
-                images.push(img);
-                
-                // Update lightbox after each new image (for progressive loading)
-                if (!isFirstBatch) {
-                    portfolioItems = document.querySelectorAll('.portfolio-item');
-                    updateLightboxCount();
-                }
-                
-                return img;
-                
-            } catch (error) {
-                // Image doesn't exist, stop checking for this batch
-                if (isFirstBatch) throw error;
+                // Update the portfolioItems reference
+                portfolioItems = document.querySelectorAll('.portfolio-item');
             }
         }
         
+        let currentImageIndex = 0;
+        let lightbox, lightboxImg, currentImageSpan;
+        
         function setupLightbox() {
+            console.log('Setting up lightbox for', portfolioItems.length, 'images');
+            
             // Lightbox functionality
-            const lightbox = document.getElementById('lightbox');
-            const lightboxImg = document.getElementById('lightbox-img');
+            lightbox = document.getElementById('lightbox');
+            lightboxImg = document.getElementById('lightbox-img');
             const lightboxClose = document.querySelector('.lightbox-close');
             const prevBtn = document.querySelector('.lightbox-prev');
             const nextBtn = document.querySelector('.lightbox-next');
-            const currentImageSpan = document.getElementById('current-image');
+            currentImageSpan = document.getElementById('current-image');
             const totalImagesSpan = document.getElementById('total-images');
             
-            let currentImageIndex = 0;
-            const portfolioImages = Array.from(portfolioItems).map(item => item.querySelector('img'));
-            
             // Update total images count
-            totalImagesSpan.textContent = portfolioImages.length;
-            
-            function showImage(index) {
-                if (portfolioImages[index]) {
-                    const img = portfolioImages[index];
-                    lightboxImg.src = img.src;
-                    lightboxImg.alt = img.alt;
-                    currentImageSpan.textContent = index + 1;
-                }
-            }
-            
-            function showNextImage() {
-                currentImageIndex = (currentImageIndex + 1) % portfolioImages.length;
-                showImage(currentImageIndex);
-            }
-            
-            function showPrevImage() {
-                currentImageIndex = (currentImageIndex - 1 + portfolioImages.length) % portfolioImages.length;
-                showImage(currentImageIndex);
-            }
+            totalImagesSpan.textContent = portfolioItems.length;
             
             // Add click event to each portfolio item
             portfolioItems.forEach((item, index) => {
@@ -673,6 +690,28 @@
                 touchStartX = 0;
                 touchStartY = 0;
             });
+        }
+        
+        function showImage(index) {
+            const portfolioImages = Array.from(portfolioItems).map(item => item.querySelector('img'));
+            if (portfolioImages[index]) {
+                const img = portfolioImages[index];
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+                currentImageSpan.textContent = index + 1;
+            }
+        }
+        
+        function showNextImage() {
+            const portfolioImages = Array.from(portfolioItems);
+            currentImageIndex = (currentImageIndex + 1) % portfolioImages.length;
+            showImage(currentImageIndex);
+        }
+        
+        function showPrevImage() {
+            const portfolioImages = Array.from(portfolioItems);
+            currentImageIndex = (currentImageIndex - 1 + portfolioImages.length) % portfolioImages.length;
+            showImage(currentImageIndex);
         }
         
         // Load images when page loads
